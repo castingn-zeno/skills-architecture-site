@@ -191,6 +191,28 @@
   .pbox .path{display:block; margin-top:4px; font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--accent)}
   .pbox p{color:var(--ink-3); font-size:12px; margin-top:6px}
 
+  /* marketing loop pills (조사→기획→분석→제작→배포) */
+  .mloop{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:var(--s2);
+    margin-top:var(--s4);
+  }
+  @media (max-width:780px){ .mloop{grid-template-columns:repeat(2,1fr)} }
+  .mloop-step{
+    background:linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border:1px solid var(--line); border-radius:12px;
+    padding:var(--s2); text-align:center; position:relative; transition:all .25s;
+  }
+  .mloop-step:hover{border-color:var(--accent); transform:translateY(-2px)}
+  .mloop-step::after{
+    content:"→"; position:absolute; right:-14px; top:50%; transform:translateY(-50%);
+    color:var(--accent); font-weight:800; font-size:16px;
+  }
+  .mloop-step:last-child::after{display:none}
+  @media (max-width:780px){ .mloop-step::after{display:none} }
+  .mloop-ico{display:block; font-size:22px; margin-bottom:4px}
+  .mloop-step b{display:block; font-size:14px; color:var(--ink); font-weight:800}
+  .mloop-step em{display:block; font-style:normal; font-size:11px; color:var(--ink-3); margin-top:3px}
+
   /* ============ SCENARIO TREE (SVG) ============ */
   .scenario-viz{
     background:linear-gradient(180deg, var(--bg-1), rgba(10,21,48,.5));
@@ -263,10 +285,10 @@
   <div class="wrap">
     <div class="logo">캐스팅엔 <span>마케팅팀</span></div>
     <ul>
+      <li><a href="#deps">구조</a></li>
       <li><a href="#process">프로세스</a></li>
       <li><a href="#scenario">시나리오</a></li>
       <li><a href="#principles">원칙</a></li>
-      <li><a href="#deps">의존성</a></li>
       <li><a href="#tools">도구</a></li>
     </ul>
   </div>
@@ -290,6 +312,132 @@
     </div>
   </div>
 </header>
+
+<section id="deps">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow">Current setup · Marketing ops</div>
+      <h2>현재 세팅된 마케팅팀 업무 위주<br/>Claude Code 구조</h2>
+      <p>지금 캐스팅엔 마케팅팀이 실제로 돌리고 있는 스킬 구성입니다. 구매 도메인 고문 <b style="color:var(--gold)">김 이사</b>가 전략·콘텐츠·PR·서비스기획에 인사이트를 공급하고(골드 점선), 그 아래로 팀 의존성이 흐릅니다.</p>
+      <div class="mloop">
+        <div class="mloop-step"><span class="mloop-ico">🔍</span><b>조사</b><em>customer · seo · aeo</em></div>
+        <div class="mloop-step"><span class="mloop-ico">🧭</span><b>기획</b><em>strategy · brand · 김 이사</em></div>
+        <div class="mloop-step"><span class="mloop-ico">📊</span><b>분석</b><em>customer · seo · aeo</em></div>
+        <div class="mloop-step"><span class="mloop-ico">🛠️</span><b>제작</b><em>content · design · dev-*</em></div>
+        <div class="mloop-step"><span class="mloop-ico">🚀</span><b>배포</b><em>pr · devops · qa</em></div>
+      </div>
+    </div>
+      <h2>팀 간 의존성 그래프</h2>
+      <p>누가 누구에게 공급하는지, 어떤 순서로 신호가 흐르는지. 위에서 아래로 읽으면 한 번의 출시가 보입니다. 왼쪽 <b style="color:var(--gold)">procurement-advisor(김 이사)</b>는 구매 도메인 고문으로, 전략·콘텐츠·PR·서비스기획에 인사이트를 주입합니다(골드 점선).</p>
+    </div>
+    <div class="dep-viz reveal">
+      <svg viewBox="0 0 1200 820" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="dMkt" cx="50%" cy="50%"><stop offset="0" stop-color="#A8CEFF"/><stop offset="1" stop-color="#2B5FA8"/></radialGradient>
+          <radialGradient id="dBrand" cx="50%" cy="50%"><stop offset="0" stop-color="#F4D88A"/><stop offset="1" stop-color="#B98A1F"/></radialGradient>
+          <radialGradient id="dCust" cx="50%" cy="50%"><stop offset="0" stop-color="#9DE8C5"/><stop offset="1" stop-color="#2E7A56"/></radialGradient>
+          <radialGradient id="dDev" cx="50%" cy="50%"><stop offset="0" stop-color="#C9B6F8"/><stop offset="1" stop-color="#5B43A3"/></radialGradient>
+          <radialGradient id="dShip" cx="50%" cy="50%"><stop offset="0" stop-color="#9DE8C5"/><stop offset="1" stop-color="#1D5C3E"/></radialGradient>
+          <filter id="dglow"><feGaussianBlur stdDeviation="4"/></filter>
+        </defs>
+
+        <!-- advisor → strategy/content/pr/service (gold dashed) -->
+        <g stroke="#E8C66A" stroke-opacity=".55" stroke-width="1.6" stroke-dasharray="5 4" fill="none">
+          <path d="M 170 80 Q 350 50 500 45"/>
+          <path d="M 170 90 Q 350 250 500 275"/>
+          <path d="M 170 100 Q 400 260 820 275"/>
+          <path d="M 170 110 Q 350 500 500 600"/>
+        </g>
+
+        <!-- edges -->
+        <g stroke="#4D8FE8" stroke-opacity=".35" stroke-width="1.5" fill="none">
+          <!-- strategy → brand -->
+          <line x1="600" y1="70" x2="600" y2="130"/>
+          <!-- brand → design/content/pr -->
+          <line x1="540" y1="180" x2="280" y2="250"/>
+          <line x1="600" y1="190" x2="600" y2="250"/>
+          <line x1="660" y1="180" x2="920" y2="250"/>
+          <!-- content → seo/aeo -->
+          <line x1="560" y1="300" x2="440" y2="370"/>
+          <line x1="640" y1="300" x2="760" y2="370"/>
+          <!-- seo ↔ aeo -->
+          <line x1="500" y1="400" x2="700" y2="400" stroke-dasharray="4 3"/>
+          <!-- design/content/pr/seo/aeo → customer -->
+          <line x1="280" y1="300" x2="560" y2="470"/>
+          <line x1="600" y1="300" x2="600" y2="470"/>
+          <line x1="920" y1="300" x2="640" y2="470"/>
+          <line x1="440" y1="420" x2="580" y2="470"/>
+          <line x1="760" y1="420" x2="620" y2="470"/>
+          <!-- customer → service-planning -->
+          <line x1="600" y1="520" x2="600" y2="580"/>
+          <!-- service-planning → dev-front / dev-back -->
+          <line x1="560" y1="620" x2="400" y2="680"/>
+          <line x1="640" y1="620" x2="800" y2="680"/>
+          <!-- dev-front/back → qa/devops -->
+          <line x1="400" y1="730" x2="540" y2="780"/>
+          <line x1="800" y1="730" x2="660" y2="780"/>
+        </g>
+
+        <!-- nodes -->
+        <g font-family="Pretendard Variable" font-weight="800" text-anchor="middle">
+          <!-- procurement-advisor (김 이사) -->
+          <g filter="url(#dglow)"><rect x="30" y="60" width="220" height="64" rx="12" fill="url(#dBrand)"/></g>
+          <rect x="30" y="60" width="220" height="64" rx="12" fill="url(#dBrand)" stroke="#E8C66A" stroke-width="1.5"/>
+          <text x="140" y="86" fill="#1a1205" font-size="14" font-weight="800">procurement-advisor</text>
+          <text x="140" y="104" fill="#4a3508" font-size="11" font-weight="700">김 이사 · CPO급 고문</text>
+          <text x="140" y="118" fill="#4a3508" font-size="9.5" font-weight="600">BSM · 소싱 · S2P · Spend</text>
+
+          <!-- strategy -->
+          <rect x="500" y="20" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="600" y="50" fill="#fff" font-size="14">strategy-team</text>
+
+          <!-- brand -->
+          <g filter="url(#dglow)"><rect x="490" y="130" width="220" height="54" rx="10" fill="url(#dBrand)"/></g>
+          <rect x="490" y="130" width="220" height="54" rx="10" fill="url(#dBrand)"/>
+          <text x="600" y="155" fill="#1a1205" font-size="14">brand-team</text>
+          <text x="600" y="172" fill="#4a3508" font-size="10" font-weight="600">가드레일 공급원</text>
+
+          <!-- design / content / pr -->
+          <rect x="180" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="280" y="280" fill="#fff" font-size="14">design-team</text>
+
+          <rect x="500" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="600" y="280" fill="#fff" font-size="14">content-team</text>
+
+          <rect x="820" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="920" y="280" fill="#fff" font-size="14">pr-team</text>
+
+          <!-- seo / aeo -->
+          <rect x="340" y="370" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="440" y="400" fill="#fff" font-size="14">seo-team</text>
+
+          <rect x="660" y="370" width="200" height="50" rx="10" fill="url(#dMkt)"/>
+          <text x="760" y="400" fill="#fff" font-size="14">aeo-team</text>
+
+          <!-- customer -->
+          <rect x="500" y="470" width="200" height="54" rx="10" fill="url(#dCust)"/>
+          <text x="600" y="495" fill="#fff" font-size="14">customer-team</text>
+          <text x="600" y="512" fill="#d6f3e4" font-size="10" font-weight="600">회의록 22건 · 온라인</text>
+
+          <!-- service planning -->
+          <rect x="490" y="580" width="220" height="46" rx="10" fill="url(#dMkt)"/>
+          <text x="600" y="608" fill="#fff" font-size="13">service-planning</text>
+
+          <!-- dev-front / dev-back -->
+          <rect x="300" y="680" width="200" height="50" rx="10" fill="url(#dDev)"/>
+          <text x="400" y="710" fill="#fff" font-size="14">dev-frontend</text>
+
+          <rect x="700" y="680" width="200" height="50" rx="10" fill="url(#dDev)"/>
+          <text x="800" y="710" fill="#fff" font-size="14">dev-backend</text>
+
+          <!-- qa / devops / ship -->
+          <rect x="490" y="780" width="220" height="44" rx="10" fill="url(#dShip)"/>
+          <text x="600" y="808" fill="#fff" font-size="13">dev-qa · dev-devops → ✅ 출시</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
 
 <!-- ============ PROCESS FLOW ============ -->
 <section id="process">
@@ -620,122 +768,6 @@
 </section>
 
 <!-- ============ DEPENDENCY GRAPH ============ -->
-<section id="deps">
-  <div class="wrap">
-    <div class="head reveal">
-      <div class="eyebrow">Team dependency graph</div>
-      <h2>팀 간 의존성 그래프</h2>
-      <p>누가 누구에게 공급하는지, 어떤 순서로 신호가 흐르는지. 위에서 아래로 읽으면 한 번의 출시가 보입니다. 왼쪽 <b style="color:var(--gold)">procurement-advisor(김 이사)</b>는 구매 도메인 고문으로, 전략·콘텐츠·PR·서비스기획에 인사이트를 주입합니다(골드 점선).</p>
-    </div>
-    <div class="dep-viz reveal">
-      <svg viewBox="0 0 1200 820" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="dMkt" cx="50%" cy="50%"><stop offset="0" stop-color="#A8CEFF"/><stop offset="1" stop-color="#2B5FA8"/></radialGradient>
-          <radialGradient id="dBrand" cx="50%" cy="50%"><stop offset="0" stop-color="#F4D88A"/><stop offset="1" stop-color="#B98A1F"/></radialGradient>
-          <radialGradient id="dCust" cx="50%" cy="50%"><stop offset="0" stop-color="#9DE8C5"/><stop offset="1" stop-color="#2E7A56"/></radialGradient>
-          <radialGradient id="dDev" cx="50%" cy="50%"><stop offset="0" stop-color="#C9B6F8"/><stop offset="1" stop-color="#5B43A3"/></radialGradient>
-          <radialGradient id="dShip" cx="50%" cy="50%"><stop offset="0" stop-color="#9DE8C5"/><stop offset="1" stop-color="#1D5C3E"/></radialGradient>
-          <filter id="dglow"><feGaussianBlur stdDeviation="4"/></filter>
-        </defs>
-
-        <!-- advisor → strategy/content/pr/service (gold dashed) -->
-        <g stroke="#E8C66A" stroke-opacity=".55" stroke-width="1.6" stroke-dasharray="5 4" fill="none">
-          <path d="M 170 80 Q 350 50 500 45"/>
-          <path d="M 170 90 Q 350 250 500 275"/>
-          <path d="M 170 100 Q 400 260 820 275"/>
-          <path d="M 170 110 Q 350 500 500 600"/>
-        </g>
-
-        <!-- edges -->
-        <g stroke="#4D8FE8" stroke-opacity=".35" stroke-width="1.5" fill="none">
-          <!-- strategy → brand -->
-          <line x1="600" y1="70" x2="600" y2="130"/>
-          <!-- brand → design/content/pr -->
-          <line x1="540" y1="180" x2="280" y2="250"/>
-          <line x1="600" y1="190" x2="600" y2="250"/>
-          <line x1="660" y1="180" x2="920" y2="250"/>
-          <!-- content → seo/aeo -->
-          <line x1="560" y1="300" x2="440" y2="370"/>
-          <line x1="640" y1="300" x2="760" y2="370"/>
-          <!-- seo ↔ aeo -->
-          <line x1="500" y1="400" x2="700" y2="400" stroke-dasharray="4 3"/>
-          <!-- design/content/pr/seo/aeo → customer -->
-          <line x1="280" y1="300" x2="560" y2="470"/>
-          <line x1="600" y1="300" x2="600" y2="470"/>
-          <line x1="920" y1="300" x2="640" y2="470"/>
-          <line x1="440" y1="420" x2="580" y2="470"/>
-          <line x1="760" y1="420" x2="620" y2="470"/>
-          <!-- customer → service-planning -->
-          <line x1="600" y1="520" x2="600" y2="580"/>
-          <!-- service-planning → dev-front / dev-back -->
-          <line x1="560" y1="620" x2="400" y2="680"/>
-          <line x1="640" y1="620" x2="800" y2="680"/>
-          <!-- dev-front/back → qa/devops -->
-          <line x1="400" y1="730" x2="540" y2="780"/>
-          <line x1="800" y1="730" x2="660" y2="780"/>
-        </g>
-
-        <!-- nodes -->
-        <g font-family="Pretendard Variable" font-weight="800" text-anchor="middle">
-          <!-- procurement-advisor (김 이사) -->
-          <g filter="url(#dglow)"><rect x="30" y="60" width="220" height="64" rx="12" fill="url(#dBrand)"/></g>
-          <rect x="30" y="60" width="220" height="64" rx="12" fill="url(#dBrand)" stroke="#E8C66A" stroke-width="1.5"/>
-          <text x="140" y="86" fill="#1a1205" font-size="14" font-weight="800">procurement-advisor</text>
-          <text x="140" y="104" fill="#4a3508" font-size="11" font-weight="700">김 이사 · CPO급 고문</text>
-          <text x="140" y="118" fill="#4a3508" font-size="9.5" font-weight="600">BSM · 소싱 · S2P · Spend</text>
-
-          <!-- strategy -->
-          <rect x="500" y="20" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="600" y="50" fill="#fff" font-size="14">strategy-team</text>
-
-          <!-- brand -->
-          <g filter="url(#dglow)"><rect x="490" y="130" width="220" height="54" rx="10" fill="url(#dBrand)"/></g>
-          <rect x="490" y="130" width="220" height="54" rx="10" fill="url(#dBrand)"/>
-          <text x="600" y="155" fill="#1a1205" font-size="14">brand-team</text>
-          <text x="600" y="172" fill="#4a3508" font-size="10" font-weight="600">가드레일 공급원</text>
-
-          <!-- design / content / pr -->
-          <rect x="180" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="280" y="280" fill="#fff" font-size="14">design-team</text>
-
-          <rect x="500" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="600" y="280" fill="#fff" font-size="14">content-team</text>
-
-          <rect x="820" y="250" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="920" y="280" fill="#fff" font-size="14">pr-team</text>
-
-          <!-- seo / aeo -->
-          <rect x="340" y="370" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="440" y="400" fill="#fff" font-size="14">seo-team</text>
-
-          <rect x="660" y="370" width="200" height="50" rx="10" fill="url(#dMkt)"/>
-          <text x="760" y="400" fill="#fff" font-size="14">aeo-team</text>
-
-          <!-- customer -->
-          <rect x="500" y="470" width="200" height="54" rx="10" fill="url(#dCust)"/>
-          <text x="600" y="495" fill="#fff" font-size="14">customer-team</text>
-          <text x="600" y="512" fill="#d6f3e4" font-size="10" font-weight="600">회의록 22건 · 온라인</text>
-
-          <!-- service planning -->
-          <rect x="490" y="580" width="220" height="46" rx="10" fill="url(#dMkt)"/>
-          <text x="600" y="608" fill="#fff" font-size="13">service-planning</text>
-
-          <!-- dev-front / dev-back -->
-          <rect x="300" y="680" width="200" height="50" rx="10" fill="url(#dDev)"/>
-          <text x="400" y="710" fill="#fff" font-size="14">dev-frontend</text>
-
-          <rect x="700" y="680" width="200" height="50" rx="10" fill="url(#dDev)"/>
-          <text x="800" y="710" fill="#fff" font-size="14">dev-backend</text>
-
-          <!-- qa / devops / ship -->
-          <rect x="490" y="780" width="220" height="44" rx="10" fill="url(#dShip)"/>
-          <text x="600" y="808" fill="#fff" font-size="13">dev-qa · dev-devops → ✅ 출시</text>
-        </g>
-      </svg>
-    </div>
-  </div>
-</section>
-
 <!-- ============ STRENGTHS ============ -->
 <section id="strengths">
   <div class="wrap">
