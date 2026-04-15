@@ -309,6 +309,32 @@
 
     <div class="flowline">
 
+      <!-- STEP 0 · ops-router -->
+      <div class="pstep reveal">
+        <div class="bubble" style="border-color:var(--gold); box-shadow:0 0 0 6px rgba(232,198,106,.1),0 0 30px rgba(232,198,106,.3)">🧭</div>
+        <div class="card" style="border-color:rgba(232,198,106,.4)">
+          <div class="kicker" style="color:var(--gold)">Step 00 · ops-router (0번 스킬)</div>
+          <h3>난이도 판별 → 모델 선택 → 예산 결정</h3>
+          <p class="desc">모든 요청의 최초 발동 스킬. 사고 깊이·맥락 크기·리스크를 3축 스코어링 해서 난이도를 정하고, 거기에 맞는 모델과 토큰 예산을 고릅니다. 결정은 1줄로 다음 스킬에 핸드오프.</p>
+          <div class="modes" style="grid-template-columns:repeat(3,1fr); margin-top:var(--s3)">
+            <div class="mode" style="background:linear-gradient(135deg,rgba(109,211,168,.14),var(--bg-2)); border-color:var(--ok)"><b style="color:var(--ok)">Low · haiku</b><span>조사·수집·단순 요약</span></div>
+            <div class="mode" style="background:linear-gradient(135deg,rgba(124,184,255,.14),var(--bg-2)); border-color:var(--accent)"><b style="color:var(--accent)">Mid · sonnet</b><span>작성·편집·리뷰·구조화</span></div>
+            <div class="mode" style="background:linear-gradient(135deg,rgba(232,198,106,.14),var(--bg-2)); border-color:var(--gold)"><b style="color:var(--gold)">High · opus</b><span>전략·리브랜딩·복합 협업</span></div>
+          </div>
+          <div class="route" style="margin-top:var(--s3); border-color:rgba(232,198,106,.4)">
+            <div class="lead">// ops-router 핸드오프 선언 (1줄)</div>
+            [ops-router → <b>content-team</b>]<br/>
+            난이도: <b>High</b> / 모델: <b>opus</b> / 예산: <b>loose</b> / 협업: <b>brand · customer · design · seo · aeo · dev-*</b>
+          </div>
+          <div class="checks" style="margin-top:var(--s3)">
+            <div class="check">Grep &gt; Glob &gt; Read (파일 크기 모르면 Grep부터)</div>
+            <div class="check">Read는 offset/limit 필수, 중복 읽기 금지</div>
+            <div class="check">설명 ≤ 20% / 산출물 ≥ 80%</div>
+            <div class="check">사용자가 명시한 모델·스킬은 존중</div>
+          </div>
+        </div>
+      </div>
+
       <!-- STEP 1 -->
       <div class="pstep reveal">
         <div class="bubble">🎯</div>
