@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캐스팅엔 Claude 스킬 아키텍처 | CastingN × ZENO</title>
+<meta name="description" content="캐스팅엔/업무마켓9/제노(ZENO)의 Claude 스킬 시스템 — 18개 팀 스킬과 협업 프로세스 전체 구조도">
+<meta property="og:title" content="캐스팅엔 Claude 스킬 아키텍처">
+<meta property="og:description" content="18개 팀 스킬이 어떻게 협업하는지, 한 장에서 보는 전체 구조">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
+<style>
+  :root {
+    /* 제노 블루 8톤 */
+    --navy-900: #060D1F;
+    --navy-800: #0D1B3E;
+    --blue-700: #163172;
+    --blue-600: #1B4AA3;
+    --blue-500: #2F6DC4;
+    --sky-400:  #4A90D9;
+    --sky-300:  #7BB8EE;
+    --ice-100:  #DCF0FF;
+    --gold:     #F5B700;
+    --gold-soft:#FFD968;
+
+    /* 그레이 */
+    --gray-50:  #F8FAFC;
+    --gray-100: #F1F5F9;
+    --gray-200: #E2E8F0;
+    --gray-300: #CBD5E1;
+    --gray-400: #94A3B8;
+    --gray-500: #64748B;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1E293B;
+    --gray-900: #0F172A;
+
+    --bg:        #050B1A;
+    --bg-card:   #0B162E;
+    --bg-card-2: #112443;
+    --border:    rgba(123, 184, 238, 0.12);
+    --border-strong: rgba(123, 184, 238, 0.28);
+    --text:      #E8F1FF;
+    --text-soft: #9DB4D4;
+    --text-mute: #6A82A6;
+
+    /* spacing 8pt */
+    --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:48px; --s6:64px; --s7:96px; --s8:128px;
+    --r-sm:8px; --r-md:12px; --r-lg:20px; --r-xl:28px;
+
+    --shadow-card: 0 1px 0 rgba(255,255,255,.04) inset, 0 20px 60px rgba(0,0,0,.45);
+    --shadow-glow: 0 0 0 1px rgba(74,144,217,.35), 0 30px 80px rgba(47,109,196,.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(47,109,196,.18), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 30%, rgba(74,144,217,.10), transparent 60%),
+      radial-gradient(ellipse 50% 30% at 10% 70%, rgba(27,74,163,.10), transparent 60%);
+  }
+  ::selection { background: var(--sky-400); color: var(--navy-900); }
+
+  /* ───── NAV ───── */
+  nav.top {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: rgba(5,11,26,.75);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s2) var(--s4);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 800; font-size: 16px; letter-spacing: -0.01em;
+  }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue-500), var(--sky-300));
+    display: grid; place-items: center;
+    color: var(--navy-900); font-weight: 900; font-size: 14px;
+    box-shadow: 0 8px 24px rgba(74,144,217,.35);
+  }
+  .nav-links { display: flex; gap: var(--s4); }
+  .nav-links a {
+    color: var(--text-soft); text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--ice-100); }
+  @media (max-width: 768px) { .nav-links { display: none; } }
+
+  /* ───── HERO ───── */
+  header.hero {
+    max-width: 1400px; margin: 0 auto;
+    padding: var(--s7) var(--s4) var(--s6);
+    text-align: center;
+    position: relative;
+  }
+  .eyebrow {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(74,144,217,.12);
+    border: 1px solid rgba(74,144,217,.32);
+    color: var(--sky-300);
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: var(--s3);
+  }
+  h1.hero-title {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    margin-bottom: var(--s3);
+    background: linear-gradient(180deg, #FFFFFF 0%, #9DB4D4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 1.6vw, 20px);
+    color: var(--text-soft);
+    max-width: 720px; margin: 0 auto var(--s5);
+    line-height: 1.7;
+  }
+  .hero-stats {
+    display: flex; gap: var(--s4); justify-content: center; flex-wrap: wrap;
+    margin-top: var(--s5);
+  }
+  .stat {
+    padding: var(--s3) var(--s4);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    min-width: 160px;
+  }
+  .stat-num {
+    font-size: 40px; font-weight: 800;
+    background: linear-gradient(135deg, var(--sky-300), var(--blue-500));
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-label {
+    color: var(--text-mute); font-size: 13px;
+    margin-top: 8px; font-weight: 500;
+  }
+
+  /* ───── COMMON SECTION ───── */
+  section { max-width: 1400px; margin: 0 auto; padding: var(--s7) var(--s4); }
+  .section-head { text-align: center; margin-bottom: var(--s6); }
+  .section-eyebrow {
+    color: var(--sky-400); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  h2.section-title {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800; letter-spacing: -0.025em; line-height: 1.2;
+    margin-bottom: var(--s2);
+  }
+  .section-desc {
+    color: var(--text-soft); font-size: 17px; max-width: 680px; margin: 0 auto;
+  }
+
+  /* ───── LAYER MAP ───── */
+  .layer {
+    margin-bottom: var(--s4);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: var(--s4);
+    background:
+      linear-gradient(180deg, rgba(74,144,217,.04), transparent 60%),
+      var(--bg-card);
+    transition: all .3s;
+  }
+  .layer:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+  }
+  .layer-head {
+    display: flex; align-items: center; gap: var(--s2);
+    margin-bottom: var(--s3);
+    padding-bottom: var(--s2);
+    border-bottom: 1px dashed var(--border);
+  }
+  .layer-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 22px;
+    background: linear-gradient(135deg, var(--blue-600), var(--sky-400));
+    box-shadow: 0 8px 20px rgba(47,109,196,.4);
+  }
+  .layer-title {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.01em;
+  }
+  .layer-sub {
+    color: var(--text-mute); font-size: 13px; margin-top: 2px;
+  }
+
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--s2);
+  }
+  .skill-card {
+    padding: var(--s3);
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    transition: all .25s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 50%, rgba(74,144,217,.08) 100%);
+    opacity: 0; transition: opacity .25s;
+  }
+  .skill-card:hover {
+    border-color: var(--sky-400);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(47,109,196,.25);
+  }
+  .skill-card:hover::before { opacity: 1; }
+  .skill-card.new::after {
+    content: 'NEW';
+    position: absolute; top: 12px; right: 12px;
+    background: var(--gold); color: var(--navy-900);
+    font-size: 10px; font-weight: 800;
+    padding: 3px 7px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .skill-name {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 14px; font-weight: 700;
+    color: var(--ice-100);
+    margin-bottom: 6px;
+  }
+  .skill-desc {
+    font-size: 13px; color: var(--text-soft);
+    line-height: 1.55;
+  }
+
+  /* ───── NETWORK GRAPH ───── */
+  .graph-wrap {
+    background:
+      radial-gradient(ellipse at center, rgba(47,109,196,.12), transparent 70%),
+      var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: var(--s4);
+    overflow: hidden;
+  }
+  .graph-svg {
+    width: 100%; height: auto;
+    max-height: 720px;
+    display: block;
+  }
+  .graph-legend {
+    display: flex; flex-wrap: wrap; gap: var(--s3);
+    justify-content: center;
+    margin-top: var(--s3);
+    padding-top: var(--s3);
+    border-top: 1px dashed var(--border);
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-soft);
+  }
+  .legend-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+
+  /* ───── PROCESS FLOW ───── */
+  .flow {
+    position: relative;
+    display: grid;
+    gap: var(--s3);
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: var(--s3);
+    padding: var(--s4);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    position: relative;
+    transition: all .3s;
+  }
+  .step:hover {
+    border-color: var(--sky-400);
+    transform: translateX(4px);
+  }
+  .step::before {
+    content: '';
+    position: absolute;
+    left: 60px; top: 100%;
+    width: 2px; height: var(--s3);
+    background: linear-gradient(180deg, var(--sky-400), transparent);
+  }
+  .step:last-child::before { display: none; }
+  .step-num {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue-600), var(--sky-400));
+    display: grid; place-items: center;
+    font-size: 24px; font-weight: 800;
+    color: white;
+    box-shadow: 0 12px 32px rgba(47,109,196,.45);
+    font-variant-numeric: tabular-nums;
+  }
+  .step-body h3 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .step-body p {
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .step-body .step-detail {
+    margin-top: var(--s2);
+    padding: var(--s2);
+    background: var(--navy-900);
+    border-radius: 8px;
+    border-left: 3px solid var(--sky-400);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--text-soft);
+    line-height: 1.7;
+  }
+
+  /* ───── PRINCIPLE GRID ───── */
+  .principle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--s2);
+  }
+  .principle {
+    padding: var(--s3);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    position: relative;
+    transition: all .25s;
+  }
+  .principle:hover {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, rgba(245,183,0,.04), transparent), var(--bg-card);
+  }
+  .principle-num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--gold);
+    font-size: 13px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .principle-title {
+    font-size: 16px; font-weight: 700;
+    color: var(--ice-100);
+    margin-bottom: 6px;
+  }
+  .principle-desc {
+    font-size: 13px; color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  /* ───── SCENARIO ───── */
+  .scenario {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: var(--s4);
+  }
+  .scenario-svg {
+    width: 100%; height: auto; max-height: 600px;
+  }
+
+  /* ───── ROADMAP ───── */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--s3);
+  }
+  .roadmap-card {
+    padding: var(--s4);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    position: relative;
+  }
+  .roadmap-card.priority::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+  }
+  .roadmap-rank {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    color: var(--gold);
+    padding: 4px 10px;
+    background: rgba(245,183,0,.1);
+    border: 1px solid rgba(245,183,0,.3);
+    border-radius: 999px;
+    margin-bottom: var(--s2);
+  }
+  .roadmap-title {
+    font-size: 18px; font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .roadmap-desc {
+    font-size: 13px; color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  /* ───── FOOTER ───── */
+  footer {
+    margin-top: var(--s7);
+    padding: var(--s5) var(--s4);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+  }
+  footer .brand-mini {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: var(--s2);
+    color: var(--text-soft); font-weight: 600;
+  }
+
+  /* ───── ANIMATION ───── */
+  @keyframes pulse {
+    0%, 100% { opacity: .3; }
+    50% { opacity: 1; }
+  }
+  @keyframes flow-anim {
+    0% { stroke-dashoffset: 100; }
+    100% { stroke-dashoffset: 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp .8s ease-out both; }
+
+  .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  .float { animation: float 4s ease-in-out infinite; }
+  .flow-line {
+    stroke-dasharray: 6 4;
+    animation: flow-anim 1.5s linear infinite;
+  }
+
+  /* ───── UTIL ───── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: var(--s4);
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== NAV ========== -->
+<nav class="top">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-mark">Z</div>
+      <div>CastingN <span style="color:var(--text-mute);font-weight:500;">×</span> Claude Skills</div>
+    </div>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#layers">Layers</a>
+      <a href="#network">Network</a>
+      <a href="#process">Process</a>
+      <a href="#scenario">Scenario</a>
+      <a href="#principles">Principles</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<header class="hero">
+  <div class="eyebrow fade-up">CastingN · 업무마켓9 · ZENO Internal Document</div>
+  <h1 class="hero-title fade-up">
+    18개 팀이 한 사람처럼<br/>일하는 방법
+  </h1>
+  <p class="hero-sub fade-up">
+    캐스팅엔/업무마켓9/제노(ZENO)의 Claude 스킬 시스템.<br/>
+    전략·브랜드·콘텐츠·디자인·검색·고객·개발 — 18개 팀 스킬이 어떻게 협업해서<br/>
+    하나의 산출물을 만들어내는지에 대한 전체 구조도.
+  </p>
+  <div class="hero-stats fade-up">
+    <div class="stat">
+      <div class="stat-num">18</div>
+      <div class="stat-label">팀 스킬 마운트</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">7</div>
+      <div class="stat-label">마케팅 풀스택</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">7</div>
+      <div class="stat-label">개발 풀스택</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">22</div>
+      <div class="stat-label">고객 회의록 1차자료</div>
+    </div>
+  </div>
+</header>
+
+<!-- ========== OVERVIEW ========== -->
+<section id="overview">
+  <div class="section-head">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">왜 만들었나</h2>
+    <p class="section-desc">
+      한 명의 마케팅 리더가 "브랜드·디자인·콘텐츠·SEO·AEO·PR·고객·세일즈"를 모두 책임져야 하는 상황에서,
+      Claude를 단순 어시스턴트가 아니라 <strong style="color:var(--ice-100)">"각 영역의 전담팀"</strong>처럼 작동시키기 위한 시스템입니다.
+    </p>
+  </div>
+
+  <div class="grid-2">
+    <div class="layer">
+      <div class="layer-head">
+        <div class="layer-icon">🧠</div>
+        <div>
+          <div class="layer-title">Before</div>
+          <div class="layer-sub">하나의 만능 어시스턴트</div>
+        </div>
+      </div>
+      <p style="color:var(--text-soft);font-size:14px;line-height:1.7;">
+        매번 추측, 컨텍스트 누락, 톤 불일치, 표기 흔들림.
+        같은 정보를 매 대화마다 다시 설명해야 함. 산출물 일관성이 사람 의지에 의존.
+      </p>
+    </div>
+    <div class="layer">
+      <div class="layer-head">
+        <div class="layer-icon" style="background:linear-gradient(135deg, var(--gold), var(--gold-soft));color:var(--navy-900);">⚡</div>
+        <div>
+          <div class="layer-title">After</div>
+          <div class="layer-sub">18개 팀 스킬 + 메모리 + 1차자료</div>
+        </div>
+      </div>
+      <p style="color:var(--text-soft);font-size:14px;line-height:1.7;">
+        키워드 한 마디로 적합한 팀이 자동 호출, 메모리에서 컨텍스트 즉시 로드,
+        가드레일 자동 검수, 핸드오프 사양까지 표준화. 사람은 전략 결정과 최종 승인만.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== LAYER MAP ========== -->
+<section id="layers">
+  <div class="section-head">
+    <div class="section-eyebrow">Layer Map</div>
+    <h2 class="section-title">스킬 풀맵</h2>
+    <p class="section-desc">
+      18개 팀 스킬은 4개 레이어로 구성됩니다. 위에서 아래로 의사결정이 흐르고, 옆으로는 협업합니다.
+    </p>
+  </div>
+
+  <!-- Layer 1: Strategy -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-icon">🎯</div>
+      <div>
+        <div class="layer-title">Strategy Layer</div>
+        <div class="layer-sub">큰 그림과 우선순위</div>
+      </div>
+    </div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-name">strategy-team</div>
+        <div class="skill-desc">시장·경쟁·전략 방향, 우선순위 의사결정</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">service-planning</div>
+        <div class="skill-desc">서비스 정의·구조화·노출방식·품목 전문성</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 2: Brand & Marketing -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-icon" style="background:linear-gradient(135deg, var(--sky-400), var(--ice-100));color:var(--navy-900);">🎨</div>
+      <div>
+        <div class="layer-title">Brand & Marketing Layer</div>
+        <div class="layer-sub">만들기 · 알리기 · 팔기 (마케팅 풀스택 7팀)</div>
+      </div>
+    </div>
+    <div class="skill-grid">
+      <div class="skill-card new">
+        <div class="skill-name">brand-team</div>
+        <div class="skill-desc">브랜드 가드레일·정체성·표기 규칙. 모든 출력의 최종 검문소</div>
+      </div>
+      <div class="skill-card new">
+        <div class="skill-name">design-team</div>
+        <div class="skill-desc">시각 자산·디자인 시스템·8pt 토큰. 마케팅 디자인 전담</div>
+      </div>
+      <div class="skill-card new">
+        <div class="skill-name">content-team</div>
+        <div class="skill-desc">블로그·백서·랜딩·세일즈덱·케이스 — 모든 콘텐츠 최종 책임</div>
+      </div>
+      <div class="skill-card new">
+        <div class="skill-name">customer-team</div>
+        <div class="skill-desc">고객 메시지·VoC. 회의록 22건 + 온라인 투트랙 조사</div>
+      </div>
+      <div class="skill-card new">
+        <div class="skill-name">seo-team</div>
+        <div class="skill-desc">키워드·온페이지·기술SEO. SRM→BSM 브릿지 전략</div>
+      </div>
+      <div class="skill-card new">
+        <div class="skill-name">aeo-team</div>
+        <div class="skill-desc">AI 검색 인용·엔티티·스키마. 7건→50+ 가시성 목표</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">pr-team</div>
+        <div class="skill-desc">미디어·보도자료·프로액티브 뉴스 헌팅</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 3: Product & Engineering -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-icon" style="background:linear-gradient(135deg, var(--blue-700), var(--blue-500));">🛠</div>
+      <div>
+        <div class="layer-title">Product & Engineering Layer</div>
+        <div class="layer-sub">만들고 운영하기 (개발 풀스택 7팀)</div>
+      </div>
+    </div>
+    <div class="skill-grid">
+      <div class="skill-card"><div class="skill-name">dev-lead</div><div class="skill-desc">개발팀장·기술 의사결정</div></div>
+      <div class="skill-card"><div class="skill-name">dev-pm</div><div class="skill-desc">제품 PM·우선순위·일정</div></div>
+      <div class="skill-card"><div class="skill-name">dev-ux-designer</div><div class="skill-desc">제품 인앱 UX·CRM·인터랙션</div></div>
+      <div class="skill-card"><div class="skill-name">dev-frontend</div><div class="skill-desc">FE 구현·랜딩·반응형</div></div>
+      <div class="skill-card"><div class="skill-name">dev-backend</div><div class="skill-desc">API·DB·연동·트래킹</div></div>
+      <div class="skill-card"><div class="skill-name">dev-qa</div><div class="skill-desc">QA·테스트·품질</div></div>
+      <div class="skill-card"><div class="skill-name">dev-devops</div><div class="skill-desc">인프라·배포·모니터링</div></div>
+    </div>
+  </div>
+
+  <!-- Layer 4: Quality & Orchestration -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-icon" style="background:linear-gradient(135deg, var(--gold), var(--gold-soft));color:var(--navy-900);">🛡</div>
+      <div>
+        <div class="layer-title">Quality & Orchestration Layer</div>
+        <div class="layer-sub">최종 검수와 멀티팀 체이닝</div>
+      </div>
+    </div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-name">quality-reviewer</div>
+        <div class="skill-desc">QC 최종 검수·산출물 품질 보증</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">workflow-chain</div>
+        <div class="skill-desc">멀티팀 워크플로우 체이닝 엔진</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== INTERACTIVE NETWORK GRAPH ========== -->
+<section id="network">
+  <div class="section-head">
+    <div class="section-eyebrow">Interactive</div>
+    <h2 class="section-title">팀 상호작용 네트워크</h2>
+    <p class="section-desc">
+      각 팀이 누구와 어떻게 연결되는지. 노드를 호버하면 연결된 팀이 강조됩니다.
+    </p>
+  </div>
+
+  <div class="graph-wrap">
+    <svg class="graph-svg" viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+      <!-- Definitions -->
+      <defs>
+        <radialGradient id="nodeStrategy" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#FFD968"/>
+          <stop offset="100%" stop-color="#F5B700"/>
+        </radialGradient>
+        <radialGradient id="nodeBrand" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#7BB8EE"/>
+          <stop offset="100%" stop-color="#2F6DC4"/>
+        </radialGradient>
+        <radialGradient id="nodeContent" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#4A90D9"/>
+          <stop offset="100%" stop-color="#1B4AA3"/>
+        </radialGradient>
+        <radialGradient id="nodeDev" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#163172"/>
+          <stop offset="100%" stop-color="#0D1B3E"/>
+        </radialGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8" fill="#4A90D9" opacity=".6"/>
+        </marker>
+      </defs>
+
+      <!-- Background grid -->
+      <rect width="1000" height="700" fill="url(#nodeDev)" opacity="0"/>
+
+      <!-- ===== EDGES (lines) ===== -->
+      <g stroke="#4A90D9" stroke-width="1.5" fill="none" opacity="0.35">
+        <!-- strategy → all -->
+        <path d="M500,80 L500,200" />
+        <path d="M500,80 Q300,150 200,260" />
+        <path d="M500,80 Q700,150 800,260" />
+
+        <!-- brand → marketing teams -->
+        <path d="M500,200 L300,340" />
+        <path d="M500,200 L500,340" />
+        <path d="M500,200 L700,340" />
+        <path d="M500,200 Q200,300 150,440" />
+        <path d="M500,200 Q800,300 850,440" />
+
+        <!-- content connections -->
+        <path d="M500,340 L300,340" />
+        <path d="M500,340 L700,340" />
+        <path d="M500,340 L350,460" />
+        <path d="M500,340 L650,460" />
+        <path d="M500,340 L500,460" />
+
+        <!-- customer center -->
+        <path d="M500,460 L300,340" />
+        <path d="M500,460 L700,340" />
+
+        <!-- seo ↔ aeo bidirectional -->
+        <path d="M350,460 L650,460" />
+
+        <!-- pr connects to seo/aeo -->
+        <path d="M150,440 L350,460" />
+        <path d="M850,440 L650,460" />
+        <path d="M150,440 L500,200" />
+
+        <!-- to dev layer -->
+        <path d="M500,460 Q500,560 400,620" />
+        <path d="M500,460 Q500,560 600,620" />
+        <path d="M650,460 Q700,560 600,620" />
+      </g>
+
+      <!-- Animated flow lines -->
+      <g stroke="#7BB8EE" stroke-width="2" fill="none" opacity="0.7">
+        <path class="flow-line" d="M500,80 L500,200" />
+        <path class="flow-line" d="M500,200 L500,340" stroke-dasharray="4 4"/>
+        <path class="flow-line" d="M500,340 L500,460" stroke-dasharray="4 4"/>
+      </g>
+
+      <!-- ===== NODES ===== -->
+      <!-- Strategy (top) -->
+      <g class="node-group" filter="url(#glow)">
+        <circle cx="500" cy="80" r="42" fill="url(#nodeStrategy)" stroke="#FFD968" stroke-width="2"/>
+        <text x="500" y="78" text-anchor="middle" fill="#060D1F" font-size="11" font-weight="800">strategy</text>
+        <text x="500" y="92" text-anchor="middle" fill="#060D1F" font-size="11" font-weight="800">-team</text>
+      </g>
+
+      <!-- Brand (center top) -->
+      <g class="node-group" filter="url(#glow)">
+        <circle cx="500" cy="200" r="48" fill="url(#nodeBrand)" stroke="#7BB8EE" stroke-width="2"/>
+        <text x="500" y="196" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="800">brand</text>
+        <text x="500" y="211" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="800">-team</text>
+        <text x="500" y="225" text-anchor="middle" fill="#DCF0FF" font-size="9">🎨 가드레일</text>
+      </g>
+
+      <!-- Design (left mid) -->
+      <g class="node-group">
+        <circle cx="300" cy="340" r="40" fill="url(#nodeBrand)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="300" y="338" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">design</text>
+        <text x="300" y="352" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">-team</text>
+      </g>
+
+      <!-- Content (center mid) - HUB -->
+      <g class="node-group" filter="url(#glow)">
+        <circle cx="500" cy="340" r="50" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="3"/>
+        <circle cx="500" cy="340" r="56" fill="none" stroke="#7BB8EE" stroke-width="1" opacity="0.4" class="pulse-dot"/>
+        <text x="500" y="336" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="800">content</text>
+        <text x="500" y="351" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="800">-team</text>
+        <text x="500" y="365" text-anchor="middle" fill="#DCF0FF" font-size="9">✍ HUB</text>
+      </g>
+
+      <!-- Service Planning (right mid) -->
+      <g class="node-group">
+        <circle cx="700" cy="340" r="40" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="700" y="335" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="800">service</text>
+        <text x="700" y="349" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="800">-planning</text>
+      </g>
+
+      <!-- PR (far left) -->
+      <g class="node-group">
+        <circle cx="150" cy="440" r="38" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="150" y="438" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">pr</text>
+        <text x="150" y="452" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">-team</text>
+      </g>
+
+      <!-- SEO (left of customer) -->
+      <g class="node-group">
+        <circle cx="350" cy="460" r="38" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="350" y="458" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">seo</text>
+        <text x="350" y="472" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">-team</text>
+      </g>
+
+      <!-- Customer (center bottom of marketing) -->
+      <g class="node-group" filter="url(#glow)">
+        <circle cx="500" cy="460" r="42" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="500" y="455" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">customer</text>
+        <text x="500" y="469" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">-team</text>
+        <text x="500" y="482" text-anchor="middle" fill="#DCF0FF" font-size="8">👥 회의록22</text>
+      </g>
+
+      <!-- AEO (right of customer) -->
+      <g class="node-group">
+        <circle cx="650" cy="460" r="38" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2"/>
+        <text x="650" y="458" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">aeo</text>
+        <text x="650" y="472" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">-team</text>
+      </g>
+
+      <!-- PR right (mirror) -->
+      <g class="node-group">
+        <circle cx="850" cy="440" r="38" fill="url(#nodeContent)" stroke="#4A90D9" stroke-width="2" opacity="0.3"/>
+        <text x="850" y="445" text-anchor="middle" fill="#FFFFFF" font-size="9" opacity="0.5">↗ media</text>
+      </g>
+
+      <!-- Dev layer -->
+      <g class="node-group">
+        <ellipse cx="400" cy="620" rx="80" ry="32" fill="url(#nodeDev)" stroke="#163172" stroke-width="2"/>
+        <text x="400" y="618" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">dev-frontend</text>
+        <text x="400" y="632" text-anchor="middle" fill="#7BB8EE" font-size="9">UX · 랜딩 · 인터랙션</text>
+      </g>
+      <g class="node-group">
+        <ellipse cx="600" cy="620" rx="80" ry="32" fill="url(#nodeDev)" stroke="#163172" stroke-width="2"/>
+        <text x="600" y="618" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">dev-backend</text>
+        <text x="600" y="632" text-anchor="middle" fill="#7BB8EE" font-size="9">API · DB · 연동</text>
+      </g>
+
+      <!-- Labels -->
+      <text x="50" y="40" fill="#6A82A6" font-size="11" font-weight="600">▲ STRATEGY</text>
+      <text x="50" y="220" fill="#6A82A6" font-size="11" font-weight="600">▲ BRAND</text>
+      <text x="50" y="380" fill="#6A82A6" font-size="11" font-weight="600">▲ MARKETING</text>
+      <text x="50" y="640" fill="#6A82A6" font-size="11" font-weight="600">▲ ENGINEERING</text>
+    </svg>
+
+    <div class="graph-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#F5B700;"></div>Strategy</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7BB8EE;"></div>Brand 가드레일</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1B4AA3;"></div>Marketing 7팀</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0D1B3E;"></div>Engineering</div>
+      <div class="legend-item"><div class="legend-dot pulse-dot" style="background:#7BB8EE;"></div>Hub (협업 라우터)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PROCESS FLOW ========== -->
+<section id="process">
+  <div class="section-head">
+    <div class="section-eyebrow">Execution Process</div>
+    <h2 class="section-title">요청에서 산출물까지 — 7단계</h2>
+    <p class="section-desc">
+      사용자 요청 한 줄이 어떻게 풀스택 산출물로 변환되는지의 전체 경로.
+    </p>
+  </div>
+
+  <div class="flow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>🎯 트리거 매칭 + 진입 스킬 결정</h3>
+        <p>사용자 메시지의 키워드를 각 스킬의 description과 매칭해서 가장 적합한 진입 스킬 1개를 자동 선정합니다.</p>
+        <div class="step-detail">
+          예) "랜딩페이지 새로 만들어줘"<br/>
+          → 키워드 매칭: "랜딩페이지" → content-team 선정<br/>
+          → Skill 도구로 호출
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>📚 컨텍스트 로드 (메모리 + 1차 자료)</h3>
+        <p>MEMORY.md 인덱스 기반으로 25개 메모리 파일과 22건 회의록 중 작업에 필요한 것만 선별 로드합니다.</p>
+        <div class="step-detail">
+          MEMORY.md (인덱스) ─┐<br/>
+          25개 메모리 파일    ├─→ 필요한 컨텍스트만 선택<br/>
+          22건 회의록 로데이터 ─┘
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>🤝 협업 라우팅 결정</h3>
+        <p>진입 스킬은 작업 시작 시 협업 라우팅을 1줄로 명시합니다. 빠진 협업 = 가짜 산출물.</p>
+        <div class="step-detail">
+          "이번 작업 라우팅:<br/>
+          &nbsp;&nbsp;brand-team(가드레일) + customer-team(고객언어) +<br/>
+          &nbsp;&nbsp;seo-team(메타) + aeo-team(FAQ구조) +<br/>
+          &nbsp;&nbsp;design-team(시각사양) + dev-frontend(인터랙션)"
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>⚙ 작업 모드 선택 + 실행</h3>
+        <p>각 스킬마다 6~7개 표준 작업 모드가 있습니다. 요청 유형에 맞는 모드를 선택해 실행합니다.</p>
+        <div class="step-detail">
+          예) content-team Mode 5 (Landing Page)<br/>
+          [자료소집] → [구조잡기] → [본문작성] → [자가검수]
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>✅ 가드레일 자가 검수</h3>
+        <p>brand-team이 정의한 가드레일을 모든 출력이 통과해야 합니다. 표기·금지어·보일러플레이트·UX라이팅·출처 검증.</p>
+        <div class="step-detail">
+          □ ZENO/제노/캐스팅엔 표기 정확?<br/>
+          □ CFO 금지어 ("감으로 산다") 사용 여부?<br/>
+          □ 보일러플레이트 순서 (제노 앞 / 업무마켓9 뒤)?<br/>
+          □ 토스 UX 라이팅 8원칙 / 출처 주석 / 글자수
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h3>📦 산출물 + 핸드오프 사양</h3>
+        <p>완성된 산출물에 더해, 다음 팀(디자인·개발·PR)이 받아 바로 작업할 수 있는 사양서를 함께 출력합니다.</p>
+        <div class="step-detail">
+          [본문] + [근거 주석] + [핸드오프 사양]<br/>
+          → dev-frontend: 인터랙션 사양표<br/>
+          → design-team: 시각 토큰 사양<br/>
+          → seo/aeo: 메타·JSON-LD
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <h3>💾 영속화 (메모리 + 데일리 로그)</h3>
+        <p>산출물에서 발견한 새 인사이트는 메모리에 갱신, 작업 자체는 데일리 로그에 Why/What/How 형식으로 기록.</p>
+        <div class="step-detail">
+          데일리 로그 → /daily-logs/YYYY-MM-DD.md<br/>
+          메모리 갱신 → MEMORY.md + 25개 파일<br/>
+          "오늘 정리" 명령 시 → Notion DB로 푸시
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SCENARIO ========== -->
+<section id="scenario">
+  <div class="section-head">
+    <div class="section-eyebrow">Real Example</div>
+    <h2 class="section-title">실전 시나리오 — "제노 랜딩페이지 디벨롭"</h2>
+    <p class="section-desc">
+      한 줄 요청이 어떻게 8개 팀의 협업으로 확장되는지.
+    </p>
+  </div>
+
+  <div class="scenario">
+    <svg class="scenario-svg" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="reqGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#F5B700"/>
+          <stop offset="100%" stop-color="#FFD968"/>
+        </linearGradient>
+        <linearGradient id="hubGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#4A90D9"/>
+          <stop offset="100%" stop-color="#1B4AA3"/>
+        </linearGradient>
+        <linearGradient id="resultGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#7BB8EE"/>
+          <stop offset="100%" stop-color="#2F6DC4"/>
+        </linearGradient>
+      </defs>
+
+      <!-- USER REQUEST -->
+      <g>
+        <rect x="50" y="270" width="180" height="60" rx="30" fill="url(#reqGrad)" filter="url(#glow)"/>
+        <text x="140" y="297" text-anchor="middle" fill="#060D1F" font-size="13" font-weight="800">사용자 요청</text>
+        <text x="140" y="315" text-anchor="middle" fill="#060D1F" font-size="11">"제노 랜딩 디벨롭"</text>
+      </g>
+
+      <!-- Arrow to hub -->
+      <path d="M230,300 L370,300" stroke="#FFD968" stroke-width="3" marker-end="url(#arrow)" class="flow-line"/>
+
+      <!-- HUB: content-team -->
+      <g filter="url(#glow)">
+        <circle cx="450" cy="300" r="60" fill="url(#hubGrad)" stroke="#7BB8EE" stroke-width="3"/>
+        <circle cx="450" cy="300" r="68" fill="none" stroke="#7BB8EE" stroke-width="1" opacity="0.4" class="pulse-dot"/>
+        <text x="450" y="296" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">content</text>
+        <text x="450" y="312" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">-team</text>
+        <text x="450" y="326" text-anchor="middle" fill="#DCF0FF" font-size="9">진입 스킬</text>
+      </g>
+
+      <!-- 8 collaboration nodes around hub -->
+      <!-- brand -->
+      <g>
+        <line x1="450" y1="240" x2="500" y2="100" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="430" y="80" width="140" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="500" y="98" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">brand-team</text>
+        <text x="500" y="112" text-anchor="middle" fill="#9DB4D4" font-size="9">표기·금지어 가드레일</text>
+      </g>
+
+      <!-- customer -->
+      <g>
+        <line x1="395" y1="270" x2="220" y2="170" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="80" y="150" width="160" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="160" y="168" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">customer-team</text>
+        <text x="160" y="182" text-anchor="middle" fill="#9DB4D4" font-size="9">회의록 22건 채굴</text>
+      </g>
+
+      <!-- strategy -->
+      <g>
+        <line x1="395" y1="290" x2="220" y2="240" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="80" y="220" width="160" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="160" y="238" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">strategy-team</text>
+        <text x="160" y="252" text-anchor="middle" fill="#9DB4D4" font-size="9">신제품 출시 모델</text>
+      </g>
+
+      <!-- seo -->
+      <g>
+        <line x1="395" y1="310" x2="220" y2="340" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="80" y="320" width="160" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="160" y="338" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">seo-team</text>
+        <text x="160" y="352" text-anchor="middle" fill="#9DB4D4" font-size="9">키워드·메타·내부링크</text>
+      </g>
+
+      <!-- aeo -->
+      <g>
+        <line x1="395" y1="330" x2="220" y2="410" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="80" y="390" width="160" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="160" y="408" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">aeo-team</text>
+        <text x="160" y="422" text-anchor="middle" fill="#9DB4D4" font-size="9">FAQ 답변형·JSON-LD</text>
+      </g>
+
+      <!-- design -->
+      <g>
+        <line x1="500" y1="330" x2="500" y2="490" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="430" y="490" width="140" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1.5"/>
+        <text x="500" y="508" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">design-team</text>
+        <text x="500" y="522" text-anchor="middle" fill="#9DB4D4" font-size="9">시각 사양·8pt 토큰</text>
+      </g>
+
+      <!-- dev-frontend -->
+      <g>
+        <line x1="510" y1="290" x2="680" y2="170" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="600" y="150" width="160" height="40" rx="8" fill="#0B162E" stroke="#7BB8EE" stroke-width="1.5"/>
+        <text x="680" y="168" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">dev-frontend</text>
+        <text x="680" y="182" text-anchor="middle" fill="#9DB4D4" font-size="9">인터랙션 가능 영역</text>
+      </g>
+
+      <!-- dev-backend -->
+      <g>
+        <line x1="510" y1="310" x2="680" y2="240" stroke="#4A90D9" stroke-width="1.5" opacity="0.5"/>
+        <rect x="600" y="220" width="160" height="40" rx="8" fill="#0B162E" stroke="#7BB8EE" stroke-width="1.5"/>
+        <text x="680" y="238" text-anchor="middle" fill="#7BB8EE" font-size="11" font-weight="700">dev-backend</text>
+        <text x="680" y="252" text-anchor="middle" fill="#9DB4D4" font-size="9">폼·CRM 연동·트래킹</text>
+      </g>
+
+      <!-- pr (optional) -->
+      <g>
+        <line x1="510" y1="290" x2="680" y2="340" stroke="#4A90D9" stroke-width="1.5" opacity="0.3" stroke-dasharray="4 4"/>
+        <rect x="600" y="320" width="160" height="40" rx="8" fill="#0B162E" stroke="#4A90D9" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="680" y="338" text-anchor="middle" fill="#9DB4D4" font-size="11" font-weight="700">pr-team</text>
+        <text x="680" y="352" text-anchor="middle" fill="#6A82A6" font-size="9">런칭 보도자료 (옵션)</text>
+      </g>
+
+      <!-- RESULT -->
+      <path d="M510,300 L770,300" stroke="#7BB8EE" stroke-width="3" marker-end="url(#arrow)" class="flow-line" opacity="0"/>
+      <path d="M510,300 Q650,300 770,420" stroke="#7BB8EE" stroke-width="2" fill="none" marker-end="url(#arrow)" class="flow-line"/>
+
+      <g filter="url(#glow)">
+        <rect x="780" y="400" width="180" height="80" rx="12" fill="url(#resultGrad)" stroke="#7BB8EE" stroke-width="2"/>
+        <text x="870" y="425" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">통합 산출물</text>
+        <text x="870" y="445" text-anchor="middle" fill="#DCF0FF" font-size="10">카피 + 구조 + 사양</text>
+        <text x="870" y="460" text-anchor="middle" fill="#DCF0FF" font-size="10">+ 핸드오프 명세</text>
+        <text x="870" y="475" text-anchor="middle" fill="#DCF0FF" font-size="10">+ 데일리 로그</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ========== PRINCIPLES ========== -->
+<section id="principles">
+  <div class="section-head">
+    <div class="section-eyebrow">Core Principles</div>
+    <h2 class="section-title">모든 스킬 공통 원칙 7가지</h2>
+    <p class="section-desc">
+      어떤 팀이 호출되든 항상 지키는 약속.
+    </p>
+  </div>
+
+  <div class="principle-grid">
+    <div class="principle">
+      <div class="principle-num">01</div>
+      <div class="principle-title">🧠 메모리 우선</div>
+      <div class="principle-desc">추측 금지. 작업 시작 전 메모리·1차 자료 먼저 확인.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">02</div>
+      <div class="principle-title">🤝 협업 라우팅</div>
+      <div class="principle-desc">혼자 작업 금지. 작업 시작 시 협업 팀을 1줄로 명시.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">03</div>
+      <div class="principle-title">📎 출처 주석</div>
+      <div class="principle-desc">모든 인용·통계는 출처 표기. 회의록·매체·페이지 명시.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">04</div>
+      <div class="principle-title">🛡 가드레일 절대 양보 X</div>
+      <div class="principle-desc">brand-team의 표기·금지어·슬로건은 어떤 상황에서도 변경 불가.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">05</div>
+      <div class="principle-title">📦 핸드오프</div>
+      <div class="principle-desc">다음 팀이 받아 바로 작업할 수 있는 사양 형태로 출력.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">06</div>
+      <div class="principle-title">💾 영속화</div>
+      <div class="principle-desc">데일리 로그 + 메모리 갱신. Why/What/How 3섹션 의무.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-num">07</div>
+      <div class="principle-title">🇰🇷 한글 출력</div>
+      <div class="principle-desc">모든 산출물은 한글. 기술 용어는 병기 가능.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ROADMAP ========== -->
+<section id="roadmap">
+  <div class="section-head">
+    <div class="section-eyebrow">Next Up</div>
+    <h2 class="section-title">다음 라운드 후보</h2>
+    <p class="section-desc">
+      "만들기"는 채워졌고, 이제 "재기·팔기·키우기" 라인을 채울 차례.
+    </p>
+  </div>
+
+  <div class="roadmap">
+    <div class="roadmap-card priority">
+      <div class="roadmap-rank">1순위</div>
+      <div class="roadmap-title">📊 data-team</div>
+      <div class="roadmap-desc">GA4·Mixpanel·KPI 트리·대시보드. 다른 팀들의 측정 기반이 되므로 가장 먼저.</div>
+    </div>
+    <div class="roadmap-card priority">
+      <div class="roadmap-rank">2순위</div>
+      <div class="roadmap-title">💼 sales-team</div>
+      <div class="roadmap-desc">콜드아웃리치·디스커버리콜·데모·클로징. 본업이고 회의록 22건이 1차자료.</div>
+    </div>
+    <div class="roadmap-card priority">
+      <div class="roadmap-rank">3순위</div>
+      <div class="roadmap-title">📈 performance-team</div>
+      <div class="roadmap-desc">광고 운영·ROAS·CAC·미디어 믹스. 광고 집행 진행 중이라 즉시 효과.</div>
+    </div>
+    <div class="roadmap-card priority">
+      <div class="roadmap-rank">4순위</div>
+      <div class="roadmap-title">🚀 growth-team</div>
+      <div class="roadmap-desc">A/B 실험·AARRR·North Star. 위 3개 위에서 실험 설계가 의미 있음.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="brand-mini">
+    <div class="brand-mark" style="width:24px;height:24px;font-size:12px;">Z</div>
+    CastingN × ZENO Internal Document
+  </div>
+  <div>캐스팅엔 / 업무마켓9 / 제노(ZENO) — Claude 스킬 시스템 v1.0</div>
+  <div style="margin-top:8px;font-size:12px;">
+    Built with 18 team skills · 25 memory files · 22 customer transcripts
+  </div>
+</footer>
+
+<script>
+  // Subtle scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('section').forEach((el) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity .8s ease-out, transform .8s ease-out';
+    observer.observe(el);
+  });
+
+  // Network graph node hover effect
+  document.querySelectorAll('.node-group').forEach((node) => {
+    node.style.cursor = 'pointer';
+    node.addEventListener('mouseenter', () => {
+      node.style.transform = 'scale(1.08)';
+      node.style.transformOrigin = 'center';
+      node.style.transition = 'transform .25s';
+    });
+    node.addEventListener('mouseleave', () => {
+      node.style.transform = 'scale(1)';
+    });
+  });
+</script>
+
+</body>
+</html>
