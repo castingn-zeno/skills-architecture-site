@@ -303,8 +303,8 @@
       모든 요청은 동일한 프로세스를 타고, 협업 라우팅이 강제되며, 결정은 메모리에 쌓여 다음 루프의 연료가 됩니다.
     </p>
     <div class="meta">
-      <span><b>20</b> 마운트 스킬</span>
-      <span><b>7</b> 마케팅 팀</span>
+      <span><b>22</b> 마운트 스킬</span>
+      <span><b>9</b> 마케팅 팀</span>
       <span><b>7</b> 개발 팀</span>
       <span><b>1</b> 구매 고문 (김 이사)</span>
       <span><b>22</b> 고객 회의록</span>
@@ -322,9 +322,9 @@
       <div class="mloop">
         <div class="mloop-step"><span class="mloop-ico">🔍</span><b>조사</b><em>customer · seo · aeo</em></div>
         <div class="mloop-step"><span class="mloop-ico">🧭</span><b>기획</b><em>strategy · brand · 김 이사</em></div>
-        <div class="mloop-step"><span class="mloop-ico">📊</span><b>분석</b><em>customer · seo · aeo</em></div>
+        <div class="mloop-step"><span class="mloop-ico">📊</span><b>분석</b><em>customer · seo · aeo · growth</em></div>
         <div class="mloop-step"><span class="mloop-ico">🛠️</span><b>제작</b><em>content · design · dev-*</em></div>
-        <div class="mloop-step"><span class="mloop-ico">🚀</span><b>배포</b><em>pr · devops · qa</em></div>
+        <div class="mloop-step"><span class="mloop-ico">🚀</span><b>배포</b><em>performance · pr · devops · qa</em></div>
       </div>
     </div>
       <h2>팀 간 의존성 그래프</h2>
@@ -376,6 +376,10 @@
           <!-- dev-front/back → qa/devops -->
           <line x1="400" y1="730" x2="540" y2="780"/>
           <line x1="800" y1="730" x2="660" y2="780"/>
+          <!-- performance-marketing → content/seo (유입 앞단 공급) -->
+          <line x1="950" y1="72" x2="700" y2="260" stroke-dasharray="3 3"/>
+          <!-- growth → customer/service (유입 이후 공급) -->
+          <line x1="950" y1="112" x2="700" y2="490" stroke-dasharray="3 3"/>
         </g>
 
         <!-- nodes -->
@@ -386,6 +390,13 @@
           <text x="140" y="86" fill="#1a1205" font-size="14" font-weight="800">procurement-advisor</text>
           <text x="140" y="104" fill="#4a3508" font-size="11" font-weight="700">김 이사 · CPO급 고문</text>
           <text x="140" y="118" fill="#4a3508" font-size="9.5" font-weight="600">BSM · 소싱 · S2P · Spend</text>
+
+          <!-- performance-marketing-team (유입 앞단) -->
+          <rect x="950" y="55" width="220" height="34" rx="9" fill="url(#dMkt)" stroke="#7CB8FF" stroke-width="1"/>
+          <text x="1060" y="77" fill="#fff" font-size="12">performance-marketing</text>
+          <!-- growth-team (유입 이후) -->
+          <rect x="950" y="95" width="220" height="34" rx="9" fill="url(#dCust)" stroke="#6DD3A8" stroke-width="1"/>
+          <text x="1060" y="117" fill="#fff" font-size="12">growth-team</text>
 
           <!-- strategy -->
           <rect x="500" y="20" width="200" height="50" rx="10" fill="url(#dMkt)"/>
